@@ -42,7 +42,7 @@ function loadPersistedTokens(): TokenData | null {
 
 function persistTokens(tokens: TokenData): void {
   try {
-    fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(tokens, null, 2));
+    fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(tokens, null, 2), { mode: 0o600 });
     console.error(`[Whoop MCP] Persisted new tokens to ${TOKEN_FILE_PATH}`);
   } catch (error) {
     console.error(`[Whoop MCP] Failed to persist tokens: ${error}`);

@@ -64,7 +64,7 @@ Follow the prompts:
 7. Copy the `code` parameter from the URL bar (the text after `?code=` and before `&`)
 8. Paste it back in the terminal
 
-The script will output your tokens. Keep this terminal open.
+The script will automatically save your tokens to `tokens.json` with secure permissions.
 
 ## Step 4: Configure Claude Desktop
 
@@ -82,9 +82,7 @@ The script will output your tokens. Keep this terminal open.
       "args": ["/FULL/PATH/TO/whoop-mcp-server/dist/index.js"],
       "env": {
         "WHOOP_CLIENT_ID": "your-client-id-from-step-1",
-        "WHOOP_CLIENT_SECRET": "your-client-secret-from-step-1",
-        "WHOOP_ACCESS_TOKEN": "access-token-from-step-3",
-        "WHOOP_REFRESH_TOKEN": "refresh-token-from-step-3"
+        "WHOOP_CLIENT_SECRET": "your-client-secret-from-step-1"
       }
     }
   }
@@ -92,6 +90,8 @@ The script will output your tokens. Keep this terminal open.
 ```
 
 **Important**: Replace `/FULL/PATH/TO/` with the actual path to where you cloned the repo.
+
+The server reads tokens from `tokens.json` automatically - you only need client ID and secret in the config.
 
 ## Step 5: Restart Claude Desktop
 
@@ -104,28 +104,7 @@ Ask Claude something like:
 - "Show me my sleep from last week"
 - "Give me a health overview"
 
-If it works, you're done! The server will automatically refresh tokens and persist them.
-
-## Step 7 (Optional): Clean Up Config
-
-After your first successful API call, the server saves tokens to `tokens.json`. You can now simplify your Claude config to just:
-
-```json
-{
-  "mcpServers": {
-    "whoop": {
-      "command": "node",
-      "args": ["/FULL/PATH/TO/whoop-mcp-server/dist/index.js"],
-      "env": {
-        "WHOOP_CLIENT_ID": "your-client-id",
-        "WHOOP_CLIENT_SECRET": "your-client-secret"
-      }
-    }
-  }
-}
-```
-
-The access/refresh tokens are no longer needed in the config.
+If it works, you're done! The server will automatically refresh and persist tokens going forward.
 
 ---
 

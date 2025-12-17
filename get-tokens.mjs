@@ -16,6 +16,17 @@
 
 import { createInterface } from 'readline';
 import { promisify } from 'util';
+import { writeFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Mask sensitive tokens for display (show first 4 and last 4 chars only)
+function maskToken(token) {
+  if (!token || token.length < 12) return '***masked***';
+  return `${token.slice(0, 4)}...${token.slice(-4)}`;
+}
 
 const rl = createInterface({
   input: process.stdin,
@@ -82,42 +93,46 @@ async function main() {
 
     const data = await response.json();
 
-    console.log('✅ Success! Here are your tokens:\n');
-    console.log('━'.repeat(60));
-    console.log(`WHOOP_ACCESS_TOKEN=${data.access_token}`);
-    console.log(`WHOOP_REFRESH_TOKEN=${data.refresh_token}`);
-    console.log('━'.repeat(60));
+    console.log('✅ Success! Tokens received.\n');
 
-    console.log('\n📋 Option 1: Create tokens.json directly (recommended):\n');
-    console.log(`cat > tokens.json << 'EOF'
-{
-  "accessToken": "${data.access_token}",
-  "refreshToken": "${data.refresh_token}",
-  "expiresAt": ${Date.now() + (data.expires_in * 1000) - 60000}
-}
-EOF`);
+    // Write tokens directly to tokens.json with secure permissions
+    const tokensPath = join(__dirname, 'tokens.json');
+    const tokenData = {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresAt: Date.now() + (data.expires_in * 1000) - 60000
+    };
 
-    console.log('\n📋 Option 2: Add to Claude Desktop config (for initial setup):\n');
+    writeFileSync(tokensPath, JSON.stringify(tokenData, null, 2), { mode: 0o600 });
+    console.log(`✅ Tokens saved to: ${tokensPath}`);
+    console.log('   (File permissions set to owner-only read/write)\n');
+
+    console.log('━'.repeat(60));
+    console.log(`Access Token:  ${maskToken(data.access_token)}`);
+    console.log(`Refresh Token: ${maskToken(data.refresh_token)}`);
+    console.log('━'.repeat(60));
+    console.log('\n💡 Full tokens are saved in tokens.json (not displayed for security).\n');
+
+    console.log('📋 Add to Claude Desktop config:\n');
     console.log(`{
   "mcpServers": {
     "whoop": {
       "command": "node",
-      "args": ["/path/to/whoop-mcp-server/dist/index.js"],
+      "args": ["${tokensPath.replace('/tokens.json', '/dist/index.js')}"],
       "env": {
-        "WHOOP_CLIENT_ID": "${clientId.trim()}",
-        "WHOOP_CLIENT_SECRET": "${clientSecret.trim()}",
-        "WHOOP_ACCESS_TOKEN": "${data.access_token}",
-        "WHOOP_REFRESH_TOKEN": "${data.refresh_token}"
+        "WHOOP_CLIENT_ID": "<your-client-id>",
+        "WHOOP_CLIENT_SECRET": "<your-client-secret>"
       }
     }
   }
 }`);
 
-    console.log('\n💡 After first use, the server persists tokens to tokens.json automatically.');
-    console.log('   You can then remove ACCESS_TOKEN and REFRESH_TOKEN from the config.\n');
+    console.log('\n💡 The server reads tokens from tokens.json automatically.');
+    console.log('   No need to put tokens in the config - just client ID and secret.\n');
     console.log('📍 Config location:');
     console.log('   macOS: ~/Library/Application Support/Claude/claude_desktop_config.json');
     console.log('   Windows: %APPDATA%\\Claude\\claude_desktop_config.json\n');
+    console.log('🔒 Security: tokens.json has restricted permissions (owner read/write only).\n');
 
   } catch (error) {
     console.error('❌ Error exchanging code:', error.message);
