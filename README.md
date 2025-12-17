@@ -2,6 +2,8 @@
 
 An MCP (Model Context Protocol) server that provides access to your Whoop health and fitness data, enabling Claude and other AI assistants to give you personalized health recommendations.
 
+> **New here?** Check out [HOW_TO_USE.md](./HOW_TO_USE.md) for a step-by-step setup guide.
+
 ## Features
 
 - **Recovery Data**: Get your recovery score, HRV, resting heart rate, SpO2, and skin temperature
