@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output (users should run npm run build)
+dist/
+
+# Claude Code / development folders
+.claude/
+.spec-workflow/
+
+# Tokens - NEVER commit these
+tokens.json
+
+# Environment files
+.env
+.env.local
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*

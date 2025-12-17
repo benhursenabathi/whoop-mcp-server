@@ -1,0 +1,33 @@
+{
+  "name": "whoop-mcp-server",
+  "version": "1.2.0",
+  "description": "MCP server for accessing Whoop health and fitness data",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "whoop",
+    "mcp",
+    "health",
+    "fitness",
+    "recovery",
+    "sleep"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
