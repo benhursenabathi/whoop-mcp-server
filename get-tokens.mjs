@@ -53,9 +53,9 @@ async function main() {
     'read:sleep',
     'read:profile',
     'read:body_measurement',
-  ].join('%20');
+  ].join(' ');
 
-  const authUrl = `https://api.prod.whoop.com/oauth/oauth2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scopes}&state=initial_setup`;
+  const authUrl = `https://api.prod.whoop.com/oauth/oauth2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=initial_setup`;
 
   console.log('\n📋 Step 1: Open this URL in your browser:\n');
   console.log(authUrl);
@@ -95,8 +95,8 @@ async function main() {
 
     console.log('✅ Success! Tokens received.\n');
 
-    // Write tokens directly to tokens.json with secure permissions
-    const tokensPath = join(__dirname, 'tokens.json');
+    // Write tokens to configured path (respects WHOOP_TOKEN_PATH env var)
+    const tokensPath = process.env.WHOOP_TOKEN_PATH || join(__dirname, 'tokens.json');
     const tokenData = {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
@@ -104,7 +104,11 @@ async function main() {
     };
 
     writeFileSync(tokensPath, JSON.stringify(tokenData, null, 2), { mode: 0o600 });
-    console.log(`✅ Tokens saved to: ${tokensPath}`);
+    if (process.env.WHOOP_TOKEN_PATH) {
+      console.log(`✅ Tokens saved to custom path: ${tokensPath}`);
+    } else {
+      console.log(`✅ Tokens saved to: ${tokensPath}`);
+    }
     console.log('   (File permissions set to owner-only read/write)\n');
 
     console.log('━'.repeat(60));
@@ -114,11 +118,12 @@ async function main() {
     console.log('\n💡 Full tokens are saved in tokens.json (not displayed for security).\n');
 
     console.log('📋 Add to Claude Desktop config:\n');
+    const distPath = join(__dirname, 'dist', 'index.js');
     console.log(`{
   "mcpServers": {
     "whoop": {
       "command": "node",
-      "args": ["${tokensPath.replace('/tokens.json', '/dist/index.js')}"],
+      "args": ["${distPath}"],
       "env": {
         "WHOOP_CLIENT_ID": "<your-client-id>",
         "WHOOP_CLIENT_SECRET": "<your-client-secret>"

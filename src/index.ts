@@ -11,8 +11,18 @@ import * as path from "path";
 const WHOOP_API_BASE = "https://api.prod.whoop.com/developer";
 const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
 
-// Token file location - same directory as the server
-const TOKEN_FILE_PATH = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "tokens.json");
+// Token file location - configurable via env var, defaults to same directory as server
+const TOKEN_FILE_PATH = process.env.WHOOP_TOKEN_PATH ||
+  path.join(path.dirname(new URL(import.meta.url).pathname), "..", "tokens.json");
+
+// Mask sensitive tokens for logging (show first 4 and last 4 chars only)
+function maskToken(token: string): string {
+  if (!token || token.length < 12) return "***";
+  return `${token.slice(0, 4)}...${token.slice(-4)}`;
+}
+
+// ISO 8601 date format validation regex
+const ISO_8601_REGEX = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]\d{2}:?\d{2})?)?$/;
 
 interface TokenData {
   accessToken: string;
@@ -35,7 +45,7 @@ function loadPersistedTokens(): TokenData | null {
       return data as TokenData;
     }
   } catch (error) {
-    console.error(`[Whoop MCP] Failed to load persisted tokens: ${error}`);
+    console.error(`[Whoop MCP] Failed to load persisted tokens: ${error instanceof Error ? error.message : String(error)}`);
   }
   return null;
 }
@@ -45,7 +55,7 @@ function persistTokens(tokens: TokenData): void {
     fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(tokens, null, 2), { mode: 0o600 });
     console.error(`[Whoop MCP] Persisted new tokens to ${TOKEN_FILE_PATH}`);
   } catch (error) {
-    console.error(`[Whoop MCP] Failed to persist tokens: ${error}`);
+    console.error(`[Whoop MCP] Failed to persist tokens: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -392,10 +402,12 @@ const RecoveryInputSchema = z.object({
     .describe("Number of recovery records to fetch (1-25, default: 7)"),
   start: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("Start date filter (ISO 8601 format, e.g., 2024-01-01T00:00:00Z)"),
   end: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("End date filter (ISO 8601 format)"),
 }).strict();
@@ -513,10 +525,12 @@ const SleepInputSchema = z.object({
     .describe("Number of sleep records to fetch (1-25, default: 7)"),
   start: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("Start date filter (ISO 8601 format)"),
   end: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("End date filter (ISO 8601 format)"),
 }).strict();
@@ -659,10 +673,12 @@ const WorkoutInputSchema = z.object({
     .describe("Number of workout records to fetch (1-25, default: 10)"),
   start: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("Start date filter (ISO 8601 format)"),
   end: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("End date filter (ISO 8601 format)"),
 }).strict();
@@ -798,10 +814,12 @@ const CycleInputSchema = z.object({
     .describe("Number of cycle records to fetch (1-25, default: 7)"),
   start: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("Start date filter (ISO 8601 format)"),
   end: z
     .string()
+    .regex(ISO_8601_REGEX, "Must be ISO 8601 format (e.g., 2024-01-01T00:00:00Z)")
     .optional()
     .describe("End date filter (ISO 8601 format)"),
 }).strict();
@@ -1076,6 +1094,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Fatal error:", error);
+  console.error("Fatal error:", error instanceof Error ? error.message : String(error));
   process.exit(1);
 });

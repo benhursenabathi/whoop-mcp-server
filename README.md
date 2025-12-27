@@ -245,6 +245,35 @@ rm tokens.json
 # Then run get-tokens.mjs or add tokens back to Claude config
 ```
 
+## Security Considerations
+
+### Token Storage
+- Tokens are stored in `tokens.json` with restricted permissions (mode 0600 - owner read/write only)
+- **Windows users:** File permissions work differently on Windows and may not provide equivalent protection. Consider additional access controls.
+- Tokens are stored unencrypted; ensure your system has appropriate access controls
+
+### Configuration Security
+- Your `claude_desktop_config.json` contains your client secret in plain text
+- **Do not commit** this config file to version control
+- Consider restricting file permissions on the config file:
+  - macOS/Linux: `chmod 600 ~/Library/Application\ Support/Claude/claude_desktop_config.json`
+
+### Best Practices
+- Regularly rotate your Whoop developer app credentials
+- Monitor your Whoop account for unauthorized access
+- Run `npm audit` periodically to check for dependency vulnerabilities
+- After initial setup, remove `WHOOP_ACCESS_TOKEN` and `WHOOP_REFRESH_TOKEN` from your config (they're persisted in `tokens.json`)
+
+### Optional: Custom Token Location
+Set `WHOOP_TOKEN_PATH` environment variable to store tokens in a specific location:
+```json
+"env": {
+  "WHOOP_TOKEN_PATH": "/path/to/secure/tokens.json",
+  "WHOOP_CLIENT_ID": "your-client-id",
+  "WHOOP_CLIENT_SECRET": "your-client-secret"
+}
+```
+
 ## API Reference
 
 This server uses the [Whoop API v2](https://developer.whoop.com/api). For more details on the data model and endpoints, see the official documentation.
